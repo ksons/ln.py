@@ -108,18 +108,18 @@ class Path(MutableSequence):
         index = -1
         distance = 0.0
 
-        for i, p in enumerate(self._path, start=1):
-            if i >= len(self._path) - 1:
-                break
+        for i in range(1, len(self) - 1):
 
-            d = segmentDistance(Vector3(p), a, b)
+            p = Vector3(self._path[i])
+
+            d = segmentDistance(p, a, b)
             if d > distance:
                 index = i
                 distance = d
 
         if distance > threshold:
-            r1 = self[:index + 1].simplify(threshold)
-            r2 = self[index:].simplify(threshold)
+            r1 = Path(self[:index + 1]).simplify(threshold)._path
+            r2 = Path(self[index:]).simplify(threshold)._path
             return Path(r1[:len(r1) - 1] + r2)
         else:
             return Path([a, b])
@@ -206,7 +206,7 @@ class Paths(MutableSequence):
                     break
                 v2 = ps[i + 1]
                 # print("Here", type(v1), type(v2))
-                draw.line((v1.x, height - v1.y, v2.x, height - v2.y), fill=0)
+                draw.line((v1.x, height - v1.y, v2.x, height - v2.y), fill=0, width=3)
 
         im.save(file_path)
 
