@@ -1,7 +1,7 @@
 from .box import Box
 from .ray import Ray
 from .hit import Hit, NoHit
-from .path import Paths, Path
+from .path import Paths
 
 from pyrr import Vector3
 
@@ -54,33 +54,18 @@ class Cube:
         x2, y2, z2 = self.max.x, self.max.y, self.max.z
 
         paths = Paths([
-            Path([Vector3([x1, y1, z1]), Vector3([x1, y1, z2])]),
-            Path([Vector3([x1, y1, z1]), Vector3([x1, y2, z1])]),
-            Path([Vector3([x1, y1, z1]), Vector3([x2, y1, z1])]),
-            Path([Vector3([x1, y1, z2]), Vector3([x1, y2, z2])]),
-            Path([Vector3([x1, y1, z2]), Vector3([x2, y1, z2])]),
-            Path([Vector3([x1, y2, z1]), Vector3([x1, y2, z2])]),
-            Path([Vector3([x1, y2, z1]), Vector3([x2, y2, z1])]),
-            Path([Vector3([x1, y2, z2]), Vector3([x2, y2, z2])]),
-            Path([Vector3([x2, y1, z1]), Vector3([x2, y1, z2])]),
-            Path([Vector3([x2, y1, z1]), Vector3([x2, y2, z1])]),
-            Path([Vector3([x2, y1, z2]), Vector3([x2, y2, z2])]),
-            Path([Vector3([x2, y2, z1]), Vector3([x2, y2, z2])]),
+            [[x1, y1, z1], [x1, y1, z2]],
+            [[x1, y1, z1], [x1, y2, z1]],
+            [[x1, y1, z1], [x2, y1, z1]],
+            [[x1, y1, z2], [x1, y2, z2]],
+            [[x1, y1, z2], [x2, y1, z2]],
+            [[x1, y2, z1], [x1, y2, z2]],
+            [[x1, y2, z1], [x2, y2, z1]],
+            [[x1, y2, z2], [x2, y2, z2]],
+            [[x2, y1, z1], [x2, y1, z2]],
+            [[x2, y1, z1], [x2, y2, z1]],
+            [[x2, y1, z2], [x2, y2, z2]],
+            [[x2, y2, z1], [x2, y2, z2]],
         ]
         )
         return paths
-        # paths = paths[:0]
-        # for i:
-        #     = 0
-        # i <= 10
-        # i++ {
-        #     p: = float64(i) / 10
-        #     var x, y float64
-        #     x = x1 + (x2-x1)*p
-        #     y = y1 + (y2-y1)*p
-        #     paths = append(paths, Path{{x, y1, z1}, {x, y1, z2}})
-        #     paths = append(paths, Path{{x, y2, z1}, {x, y2, z2}})
-        #     paths = append(paths, Path{{x1, y, z1}, {x1, y, z2}})
-        #     paths = append(paths, Path{{x2, y, z1}, {x2, y, z2}})
-        # }
-        # return paths

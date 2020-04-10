@@ -3,7 +3,7 @@ from pyrr import Vector3
 from .hit import Hit, NoHit
 from .box import Box
 from .ray import Ray
-from .path import Path, Paths
+from .path import Paths
 from .util import vector_min, vector_max
 
 EPS = 1e-9
@@ -72,9 +72,9 @@ class Triangle:
 
     def paths(self) -> Paths:
         return Paths([
-            Path([self.v1, self.v2]),
-            Path([self.v2, self.v3]),
-            Path([self.v3, self.v1])])
+            [self.v1, self.v2],
+            [self.v2, self.v3],
+            [self.v3, self.v1]])
 
     def show_tree(self, level):
         return "%s%5.2f,%5.2f,%5.2f %5.2f,%5.2f,%5.2f %5.2f,%5.2f,%5.2f\n" % (level * ' ',

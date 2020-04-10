@@ -26,47 +26,33 @@ def segmentDistance(p: Vector3, v: Vector3, w: Vector3):
     return vector.length((v + ((w - v) * t)) - p)
 
 
-class Path(MutableSequence):
-    def __init__(self, path=None):
-        self._path: List[Vector3] = path or []
+class Path:
 
-    def __len__(self):
-        return len(self._path)
-
-    def __getitem__(self, pos):
-        return self._path[pos]
-
-    def __setitem__(self, pos, value):
-        self._path[pos] = value
-
-    def __delitem__(self, pos):
-        del self._path[pos]
-
-    def insert(self, pos, value):
-        self._path.insert(pos, value)
-
-    def bounding_box(self) -> Box:
-        box = Box(self._path[0], self._path[0])
-        for p in self._path:
-            box = box.extend(Box(p, p))
+    @staticmethod
+    def bounding_box(path) -> Box:
+        box = Box(path[0], path[0])
+        for point in path:
+            box = box.extend(Box(point, point))
 
         return box
 
-    def transform(self, matrix: Matrix44):
-        result = Path()
-        for v in self._path:
+    @staticmethod
+    def transform(path, matrix: Matrix44):
+        result = []
+        for v in path:
             result.append(matrix * v)
 
         return result
 
-    def chop(self, step):
-        result = Path()
-        for i, a in enumerate(self._path):
-            if i >= len(self._path) - 1:
+    @staticmethod
+    def chop(path, step):
+        result = []
+        for i, a in enumerate(path):
+            if i >= len(path) - 1:
                 break
 
             a = Vector3(a)
-            b = Vector3(self._path[i + 1])
+            b = Vector3(path[i + 1])
             v = b - a
             length = v.length
 
@@ -82,35 +68,39 @@ class Path(MutableSequence):
 
         return result
 
-    def filter(self, f: Filter):
-        result = Paths()
-        path = []
-        for v in self._path:
+    @staticmethod
+    def filter(path, f: Filter):
+        result = []
+        current_path = []
+        for v in path:
             v, ok = f.filter(v)
             if ok:
-                path.append(v)
+                current_path.append(v)
             else:
-                if len(path) > 1:
-                    result.append(Path(path))
-                path = []
+                if len(current_path) > 1:
+                    result.append(current_path)
+                current_path = []
 
-        if len(path) > 1:
-            result.append(Path(path))
+        if len(current_path) > 1:
+            result.append(current_path)
 
-        return result
+        return Paths(result)
 
-    def simplify(self, threshold):
-        if len(self) < 3:
-            return self
+    @staticmethod
+    def simplify(path, threshold):
+        path_length = len(path)
 
-        a = Vector3(self._path[0])
-        b = Vector3(self._path[len(self._path) - 1])
+        if path_length < 3:
+            return path
+
+        a = Vector3(path[0])
+        b = Vector3(path[path_length - 1])
         index = -1
         distance = 0.0
 
-        for i in range(1, len(self) - 1):
+        for i in range(1, path_length - 1):
 
-            p = Vector3(self._path[i])
+            p = Vector3(path[i])
 
             d = segmentDistance(p, a, b)
             if d > distance:
@@ -118,21 +108,21 @@ class Path(MutableSequence):
                 distance = d
 
         if distance > threshold:
-            r1 = Path(self[:index + 1]).simplify(threshold)._path
-            r2 = Path(self[index:]).simplify(threshold)._path
-            return Path(r1[:len(r1) - 1] + r2)
+            r1 = Path.simplify(path[:index + 1], threshold)
+            r2 = Path.simplify(path[index:], threshold)
+            return r1[:len(r1) - 1] + r2
         else:
-            return Path([a, b])
+            return [a, b]
 
-    def __str__(self):
+    def to_string(path) -> str:
         result = ""
-        for v in self._path:
+        for v in path:
             result += "{:f},{:f},{:f};".format(v[0], v[1], v[2])
         return result
 
-    def toSVG(self) -> str:
+    def toSVG(path) -> str:
         coords = []
-        for v in self._path:
+        for v in path:
             coords.append("{:f},{:f}".format(v[0], v[1]))
 
         points = " ".join(coords)
@@ -166,32 +156,32 @@ class Paths(MutableSequence):
         return box
 
     def transform(self, matrix: Matrix44):
-        return Paths([path.transform(matrix) for path in self._paths])
+        return Paths([Path.transform(path, matrix) for path in self._paths])
 
     def chop(self, step):
         result = []
         for p in self._paths:
-            assert(isinstance(p, Path))
-            result.append(p.chop(step))
+            # assert(isinstance(p, Path))
+            result.append(Path.chop(p, step))
         # print(result)
         return Paths(result)
 
     def filter(self, f: Filter):
         result = []
         for path in self._paths:
-            assert(isinstance(path, Path))
-            result.extend(path.filter(f)._paths)
+            # assert(isinstance(path, Path))
+            result.extend(Path.filter(path, f)._paths)
         return Paths(result)
 
     def simplify(self, threshold):
         result = []
         for path in self._paths:
-            assert(isinstance(path, Path))
-            result.append(path.simplify(threshold))
+            # assert(isinstance(path, Path))
+            result.append(Path.simplify(path, threshold))
         return Paths(result)
 
     def __str__(self):
-        return "\n".join(str(path) for path in self._paths)
+        return "\n".join(Path.to_string(path) for path in self._paths)
 
     def writeToPNG(self, file_path: str, width, height):
         canvas = (width, height)
@@ -200,12 +190,10 @@ class Paths(MutableSequence):
         draw = ImageDraw.Draw(im)
 
         for ps in self._paths:
-            # print("Here", type(ps))
             for i, v1 in enumerate(ps):
                 if i >= len(ps) - 1:
                     break
                 v2 = ps[i + 1]
-                # print("Here", type(v1), type(v2))
                 draw.line((v1.x, height - v1.y, v2.x, height - v2.y), fill=0, width=3)
 
         im.save(file_path)
@@ -218,7 +206,7 @@ class Paths(MutableSequence):
 
         lines.append(
             "<g transform=\"translate(0,{}) scale(1,-1)\">".format(height))
-        lines += [path.toSVG() for path in self._paths]
+        lines += [Path.toSVG(path) for path in self._paths]
         lines.append("</g></svg>")
         return "\n".join(lines)
 

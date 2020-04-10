@@ -1,5 +1,4 @@
-from pyrr import Vector3
-import numpy as np
+from pyrr import Vector3, aabb
 
 from .axis import Axis
 from .ray import Ray
@@ -7,20 +6,18 @@ from .ray import Ray
 
 class Box:
 
-    def __init__(self, min=None, max=None):
-        self.min: Vector3 = Vector3() if min is None else Vector3(min)
-        self.max: Vector3 = Vector3() if max is None else Vector3(max)
+    def __init__(self, min, max):
+        self._box = aabb.create_from_bounds(min, max)
 
     @staticmethod
     def BoxForShapes(shapes):
         if not len(shapes):
             return Box()
 
-        box = shapes[0].bounding_box()
-        for shape in shapes:
-            box = box.extend(shape.bounding_box())
+        boxes = [x.bounding_box()._box for x in shapes]
+        nb = aabb.create_from_aabbs(boxes)
 
-        return box
+        return Box(nb[0], nb[1])
 
     @staticmethod
     def BoxForTriangles(shapes):
@@ -39,23 +36,31 @@ class Box:
 
         return Box(min, max)
 
+    @property
+    def min(self):
+        return Vector3(self._box[0])
+
+    @property
+    def max(self):
+        return Vector3(self._box[1])
+
     def anchor(self, a: Vector3) -> Vector3:
         return self.min + (self.size() * a)
 
     def center(self) -> Vector3:
-        return self.anchor(Vector3(0.5, 0.5, 0.5))
+        return aabb.centre_point(self._box)
 
     def size(self) -> Vector3:
         return self.max - self.min
 
     def contains(self, b: Vector3) -> bool:
-        return self.min.x <= b.x and self.max.x >= b.x and self.min.y <= b.y and \
-            self.max.y >= b.y and self.min.z <= b.z and self.max.z >= b.z
+        min = self.min
+        max = self.max
+        return min.x <= b.x and max.x >= b.x and min.y <= b.y and \
+            max.y >= b.y and min.z <= b.z and max.z >= b.z
 
     def extend(self, other):
-        minimum = np.fmin(self.min, other.min)
-        maximum = np.fmax(self.max, other.max)
-        return Box(minimum, maximum)
+        return aabb.create_from_aabbs([self._box, other._box])
 
     def intersect(self, r: Ray):
         x1 = (self.min.x - r.origin.x) / r.direction.x

@@ -1,6 +1,6 @@
 import unittest
 
-import ln
+from ln import Path
 
 
 class TestPath(unittest.TestCase):
@@ -9,20 +9,19 @@ class TestPath(unittest.TestCase):
         Test chopping of a path
         """
 
-        path = ln.Path([[0.0, 0.0, 0.0], [0.0, 0.0, 1.0]])
-        path = path.chop(0.1)
+        path = [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0]]
+        path = Path.chop(path, 0.1)
         self.assertEqual(len(path), 11)
-        path = path.simplify(0.1)
 
     def test_path_simplify(self):
         """
         Test simplifying a path
         """
 
-        path = ln.Path([ln.Vector3([0.0, 0.0, 0.0]), ln.Vector3([0.0, 0.0, 1.0])])
-        path = path.chop(0.1)
+        path = [[0.0, 0.0, 0.0], [0.0, 0.0, 1.0]]
+        path = Path.chop(path, 0.1)
         self.assertEqual(len(path), 11)
-        path1 = path.simplify(0.1)
+        path1 = Path.simplify(path, 0.1)
         self.assertEqual(len(path1), 2)
 
 

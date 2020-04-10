@@ -5,7 +5,7 @@ from pyrr import Vector3
 from .box import Box
 from .ray import Ray
 from .hit import Hit, NoHit
-from .path import Path, Paths
+from .path import Paths
 
 
 class Sphere:
@@ -31,7 +31,7 @@ class Sphere:
         b = to | r.direction
         c = (to | to) - radius * radius
         d = b * b - c
-        print(d)
+
         if d > 0:
             d = math.sqrt(d)
             t1 = -b - d
@@ -50,7 +50,7 @@ class Sphere:
         n = 10
         o = 10
         for lat in range(-90 + o, 91 - o, n):
-            path = Path()
+            path = []
             for lng in range(0, 361):
                 v = Sphere.latlng_to_XYZ(lat, lng, self.radius) + self.center
                 path.append(v)
@@ -58,7 +58,7 @@ class Sphere:
             paths.append(path)
 
         for lng in range(0, 361, n):
-            path = Path()
+            path = []
             for lat in range(-90 + o, 91 - o):
                 v = Sphere.latlng_to_XYZ(lat, lng, self.radius) + self.center
                 path.append(v)
