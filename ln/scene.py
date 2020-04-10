@@ -17,7 +17,7 @@ class Scene:
             shape.compile()
 
         if not self.tree:
-            self.tree = Tree.fromShapes(self.shapes)
+            self.tree = Tree.from_shapes(self.shapes)
 
     def add(self, shape):
         self.shapes.append(shape)

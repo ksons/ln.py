@@ -9,3 +9,6 @@ class Ray:
 
     def position(self, t) -> Vector3:
         return self.origin.add(self.direction.mulScalar(t))
+
+    def __str__(self):
+        return "O: {}, D: {}".format(self.origin, self.direction)

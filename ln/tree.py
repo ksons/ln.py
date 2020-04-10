@@ -12,7 +12,7 @@ class Tree:
         self.root = node
 
     @staticmethod
-    def fromShapes(shapes):
+    def from_shapes(shapes):
         box = Box.BoxForShapes(shapes)
         node = Node(shapes)
         node.split(0)
@@ -25,6 +25,9 @@ class Tree:
 
         return self.root.intersect(r, tmin, tmax)
 
+    def show_tree(self, level=0):
+        return ' ' * level + "Tree\n" + self.root.show_tree(level + 1)
+
 
 class Node:
     def __init__(self, shapes):
@@ -35,14 +38,13 @@ class Node:
         self.right = None
 
     def intersect(self, r: Ray, tmin, tmax) -> Hit:
-
         if self.axis == Axis.AxisNone:
             return self.intersectShapes(r)
 
         if self.axis == Axis.AxisX:
             tsplit = (self.point - r.origin.x) / r.direction.x
             leftFirst = (r.origin.x < self.point) or (
-                r.origin.X == self.point and r.direction.x <= 0)
+                r.origin.x == self.point and r.direction.x <= 0)
 
         elif self.axis == Axis.AxisY:
             tsplit = (self.point - r.origin.y) / r.direction.y
@@ -51,7 +53,7 @@ class Node:
 
         else:  # AxisZ
             tsplit = (self.point - r.origin.z) / r.direction.z
-            leftFirst = (r.origin.y < self.point) or (
+            leftFirst = (r.origin.z < self.point) or (
                 r.origin.z == self.point and r.direction.z <= 0)
 
         if leftFirst:
@@ -68,17 +70,18 @@ class Node:
             return second.intersect(r, tmin, tmax)
 
         h1 = first.intersect(r, tmin, tsplit)
-        if h1.T <= tsplit:
+        if h1.t <= tsplit:
             return h1
 
-        h2 = second.intersect(r, tsplit, min(tmax, h1.T))
-        if h1.T <= h2.T:
+        h2 = second.intersect(r, tsplit, min(tmax, h1.t))
+        if h1.t <= h2.t:
             return h1
         else:
             return h2
 
     def intersectShapes(self, r: Ray) -> Hit:
         hit = NoHit
+
         for shape in self.shapes:
             h = shape.intersect(r)
             if h.t < hit.t:
@@ -122,12 +125,12 @@ class Node:
         zs = []
         for shape in self.shapes:
             box = shape.bounding_box()
-            xs.append(box.Min.X)
-            xs.append(box.Max.X)
-            ys.append(box.Min.Y)
-            ys.append(box.Max.Y)
-            zs.append(box.Min.Z)
-            zs.append(box.Max.Z)
+            xs.append(box.min.x)
+            xs.append(box.max.x)
+            ys.append(box.min.y)
+            ys.append(box.max.y)
+            zs.append(box.min.z)
+            zs.append(box.max.z)
 
         xs.sort(key=float)
         ys.sort(key=float)
@@ -142,8 +145,9 @@ class Node:
             if n % 2 == 1:
                 return items[n / 2]
 
-            a = items[n / 2 - 1]
-            b = items[n / 2]
+            half = int(n / 2)
+            a = items[half - 1]
+            b = items[half]
             return (a + b) / 2
 
         mx, my, mz = median(xs), median(ys), median(zs)
@@ -182,3 +186,19 @@ class Node:
         self.right.split(depth + 1)
 
         self.shapes = None  # only needed at leaf nodes
+
+    def show_tree(self, level=0):
+        s = ' ' * level + "Node:"
+
+        if self.axis == Axis.AxisNone:
+            s += "Shapes ({})\n".format(len(self.shapes))
+            for shape in self.shapes:
+                if getattr(shape, "show_tree", None):
+                    s += shape.show_tree(level + 1)
+
+            return s
+
+        s += "{} {:.2f}\n".format(self.axis, self.point)
+        s += self.left.show_tree(level + 1)
+        s += self.right.show_tree(level + 1)
+        return s

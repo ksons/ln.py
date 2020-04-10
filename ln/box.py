@@ -1,7 +1,8 @@
+from pyrr import Vector3
+import numpy as np
+
 from .axis import Axis
 from .ray import Ray
-
-from pyrr import Vector3
 
 
 class Box:
@@ -39,7 +40,7 @@ class Box:
         return Box(min, max)
 
     def anchor(self, a: Vector3) -> Vector3:
-        return self.min.Add(self.size().Mul(a))
+        return self.min + (self.size() * a)
 
     def center(self) -> Vector3:
         return self.anchor(Vector3(0.5, 0.5, 0.5))
@@ -52,10 +53,8 @@ class Box:
             self.max.y >= b.y and self.min.z <= b.z and self.max.z >= b.z
 
     def extend(self, other):
-        minimum = Vector3([min(self.min.x, other.min.x), min(
-            self.min.y, other.min.y), min(self.min.z, other.min.z)])
-        maximum = Vector3([max(self.max.x, other.max.x), max(
-            self.max.y, other.max.y), min(self.max.z, other.max.z)])
+        minimum = np.fmin(self.min, other.min)
+        maximum = np.fmax(self.max, other.max)
         return Box(minimum, maximum)
 
     def intersect(self, r: Ray):
@@ -91,3 +90,6 @@ class Box:
             right = self.max.z >= point
 
         return left, right
+
+    def __str__(self):
+        return "Box: {} {}".format(self.min, self.max)
